@@ -1,0 +1,304 @@
+const Grid = ReactBootstrap.Grid,
+  Row = ReactBootstrap.Row,
+  Col = ReactBootstrap.Col,
+  Well = ReactBootstrap.Well,
+  Accordion = ReactBootstrap.Accordion,
+  Panel = ReactBootstrap.Panel,
+  Button = ReactBootstrap.Button,
+  ButtonToolbar = ReactBootstrap.ButtonToolbar,
+  Modal = ReactBootstrap.Modal,
+  ListGroup = ReactBootstrap.ListGroup,
+  ListGroupItem = ReactBootstrap.ListGroupItem,
+  FormControl = ReactBootstrap.FormControl,
+  ControlLabel = ReactBootstrap.ControlLabel;
+
+const RecipeContainer = React.createClass({
+  getInitialState() {
+    if (!localStorage.getItem('_hadaclay_recipes')) {
+      let recipes = [
+        {
+          name: 'Peanut Brittle',
+          ingredients: 'Peanuts, butter, water, sugar, salt'
+        },
+        {
+          name: 'Cheesecake',
+          ingredients: 'Graham cracker crumbs, sugar, butter or margerine, cream cheese, sugar, eggs'
+        }
+      ];
+      localStorage.setItem('_hadaclay_recipes', JSON.stringify(recipes));
+      return {recipes};
+    } else {
+      // Get Recipes from LocalStorage
+      let recipes = JSON.parse(localStorage.getItem('_hadaclay_recipes'));
+      return {recipes};
+    }
+  },
+
+  handleNew(recipe) {
+    let newState = {};
+    newState.recipes = this.state.recipes;
+    newState.recipes.push(recipe);
+    this.setState(newState);
+    localStorage.setItem(
+      '_hadaclay_recipes',
+      JSON.stringify(this.state.recipes)
+    );
+  },
+
+  handleUpdate(event, key) {
+    let newState = {};
+    newState = this.state.recipes[key];
+    switch (event.target.id) {
+      case 'recipe-name':
+        newState.name = event.target.value;
+        this.setState(newState);
+        localStorage.setItem(
+          '_hadaclay_recipes',
+          JSON.stringify(this.state.recipes)
+        );
+        break;
+      case 'ingredients':
+        newState.ingredients = event.target.value;
+        this.setState(newState);
+        localStorage.setItem(
+          '_hadaclay_recipes',
+          JSON.stringify(this.state.recipes)
+        );
+        break;
+      default:
+        break;
+    }
+  },
+
+  handleDelete(key) {
+    let newState = {};
+    newState.recipes = this.state.recipes;
+    newState.recipes.splice(key, 1);
+    this.setState(newState);
+    localStorage.setItem(
+      '_hadaclay_recipes',
+      JSON.stringify(this.state.recipes)
+    );
+  },
+
+  render() {
+    return (
+      <Well className="recipe-well">
+        {this.state.recipes.map((recipe, i) => {
+          return (
+            <RecipePanel
+              eventKey={i}
+              key={i}
+              header={recipe.name}
+              onUpdate={this.handleUpdate}
+              onDelete={this.handleDelete}
+            >
+              {recipe.ingredients}
+            </RecipePanel>
+          );
+        })}
+        <AddRecipeModal onNew={this.handleNew} />
+      </Well>
+    );
+  }
+});
+
+const RecipePanel = React.createClass({
+  getInitialState() {
+    return {
+      showModal: false
+    };
+  },
+
+  closeEditModal() {
+    this.setState({
+      showModal: false
+    });
+  },
+
+  openEditModal() {
+    this.setState({
+      showModal: true
+    });
+  },
+
+  handleChange(event, key) {
+    this.props.handleUpdate(event, key);
+  },
+
+  handleSubmit(event) {
+    event.preventDefault();
+  },
+
+  handleDelete() {
+    this.props.onDelete(this.props.eventKey);
+  },
+
+  render() {
+    return (
+      <div>
+        <Panel
+          header={this.props.header}
+          eventKey={this.props.eventKey}
+          collapsible
+        >
+          <h4 className="text-center">Ingredients</h4><hr />
+          <ListGroup>
+            {this.props.children.split(',').map((ingredient, i) => {
+              return <ListGroupItem key={i}> {ingredient}</ListGroupItem>;
+            })}
+          </ListGroup>
+          <ButtonToolbar>
+            <Button onClick={this.handleDelete} bsStyle="danger">Delete</Button>
+            <Button onClick={this.openEditModal}>Edit Recipe</Button>
+          </ButtonToolbar>
+        </Panel>
+
+        <Modal show={this.state.showModal} onHide={this.closeEditModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Edit Recipe</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <form onSubmit={this.handleSubmit}>
+              <ControlLabel>Recipe</ControlLabel>
+              <FormControl
+                id="recipe-name"
+                value={this.props.header}
+                onChange={event =>
+                  this.props.onUpdate(event, this.props.eventKey)}
+              />
+              <ControlLabel>Ingredients</ControlLabel>
+              <FormControl
+                id="ingredients"
+                componentClass="textarea"
+                value={this.props.children}
+                onChange={event =>
+                  this.props.onUpdate(event, this.props.eventKey)}
+              />
+            </form>
+          </Modal.Body>
+          <Modal.Footer>
+            <ButtonToolbar className="pull-right">
+              <Button bsStyle="primary" onClick={this.closeEditModal}>
+                Finish
+              </Button>
+            </ButtonToolbar>
+          </Modal.Footer>
+        </Modal>
+      </div>
+    );
+  }
+});
+
+const AddRecipeModal = React.createClass({
+  getInitialState() {
+    return {
+      showModal: false,
+      name: '',
+      ingredients: ''
+    };
+  },
+
+  close() {
+    this.setState({
+      showModal: false
+    });
+  },
+
+  open() {
+    this.setState({
+      showModal: true
+    });
+  },
+
+  onChange(event) {
+    switch (event.target.id) {
+      case 'recipe-name':
+        this.setState({name: event.target.value});
+        break;
+      case 'ingredients':
+        this.setState({ingredients: event.target.value});
+        break;
+      default:
+        break;
+    }
+  },
+
+  handleSubmit(event) {
+    event.preventDefault();
+    // Build object from state
+    const newRecipe = {
+      name: this.state.name,
+      ingredients: this.state.ingredients
+    };
+    this.props.onNew(newRecipe);
+    // Clear state after passed to RecipeContainer
+    this.setState({name: '', ingredients: ''});
+    this.close();
+  },
+
+  render() {
+    return (
+      <div>
+        <Button
+          className="add-button"
+          bsSize="large"
+          bsStyle="primary"
+          block
+          onClick={this.open}
+        >
+          Add Recipe
+        </Button>
+        <Modal show={this.state.showModal} onHide={this.close}>
+          <Modal.Header closeButton>
+            <Modal.Title>Add a Recipe</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <form onSubmit={this.handleSubmit}>
+              <ControlLabel>Recipe</ControlLabel>
+              <FormControl
+                id="recipe-name"
+                placeholder="Recipe Name"
+                value={this.state.name}
+                onChange={this.onChange}
+              />
+              <ControlLabel>Ingredients</ControlLabel>
+              <FormControl
+                id="ingredients"
+                componentClass="textarea"
+                placeholder="Enter, ingredients, separated, by, commas"
+                value={this.state.ingredients}
+                onChange={this.onChange}
+              />
+            </form>
+          </Modal.Body>
+          <Modal.Footer>
+            <ButtonToolbar className="pull-right">
+              <Button onClick={this.handleSubmit} bsStyle="primary">
+                Add Recipe
+              </Button>
+              <Button onClick={this.close}>Close</Button>
+            </ButtonToolbar>
+          </Modal.Footer>
+        </Modal>
+      </div>
+    );
+  }
+});
+
+const App = () => (
+  <Grid>
+    <Row>
+      <Col xs={12}>
+        <RecipeContainer />
+      </Col>
+    </Row>
+  </Grid>
+);
+
+ReactDOM.render(<App />, document.getElementById('app'));
+
+// Set background of page
+const deviceHeight = window.screen.height;
+const deviceWidth = window.screen.width;
+document.body.style.backgroundImage = `url(https://source.unsplash.com/category/food/${deviceWidth}x${deviceHeight})`;

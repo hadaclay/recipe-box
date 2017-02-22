@@ -1,0 +1,32 @@
+body {
+  background-size: cover;
+}
+
+.recipe-well {
+  margin-top: 2vh;
+}
+
+.panel-title {
+  cursor: pointer;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 1rem;
+  text-color: #000;
+  text-align: center;
+}
+
+.footer a {
+  color: #eee;
+  text-decoration: none;
+  text-shadow: 1px 1px 2px #222;
+
+}

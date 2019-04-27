@@ -12,9 +12,10 @@ const Grid = ReactBootstrap.Grid,
   FormControl = ReactBootstrap.FormControl,
   ControlLabel = ReactBootstrap.ControlLabel;
 
-const RecipeContainer = React.createClass({
-  getInitialState() {
-    if (!localStorage.getItem('_hadaclay_recipes')) {
+class RecipeContainer extends React.Component {
+  constructor(props) {
+    super(props);
+    if (localStorage.getItem('_hadaclay_recipes') === null) {
       let recipes = [
         {
           name: 'Peanut Brittle',
@@ -26,14 +27,18 @@ const RecipeContainer = React.createClass({
         }
       ];
       localStorage.setItem('_hadaclay_recipes', JSON.stringify(recipes));
-      return {recipes};
+      this.state = {recipes};
     } else {
       // Get Recipes from LocalStorage
       let recipes = JSON.parse(localStorage.getItem('_hadaclay_recipes'));
-      return {recipes};
+      this.state = {recipes};
     }
-  },
-
+    
+    this.handleNew = this.handleNew.bind(this);
+    this.handleUpdate = this.handleUpdate.bind(this);
+    this.handleDelete = this.handleDelete.bind(this);
+  }
+  
   handleNew(recipe) {
     let newState = {};
     newState.recipes = this.state.recipes;
@@ -43,7 +48,7 @@ const RecipeContainer = React.createClass({
       '_hadaclay_recipes',
       JSON.stringify(this.state.recipes)
     );
-  },
+  }
 
   handleUpdate(event, key) {
     let newState = {};
@@ -68,7 +73,7 @@ const RecipeContainer = React.createClass({
       default:
         break;
     }
-  },
+  }
 
   handleDelete(key) {
     let newState = {};
@@ -79,7 +84,7 @@ const RecipeContainer = React.createClass({
       '_hadaclay_recipes',
       JSON.stringify(this.state.recipes)
     );
-  },
+  }
 
   render() {
     return (
@@ -101,38 +106,43 @@ const RecipeContainer = React.createClass({
       </Well>
     );
   }
-});
+};
 
-const RecipePanel = React.createClass({
-  getInitialState() {
-    return {
-      showModal: false
-    };
-  },
+class RecipePanel extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {showModal: false};
+    
+    this.closeEditModal = this.closeEditModal.bind(this);
+    this.openEditModal = this.openEditModal.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleDelete = this.handleDelete.bind(this);
+  }
 
   closeEditModal() {
     this.setState({
       showModal: false
     });
-  },
+  }
 
   openEditModal() {
     this.setState({
       showModal: true
     });
-  },
+  }
 
   handleChange(event, key) {
     this.props.handleUpdate(event, key);
-  },
+  }
 
   handleSubmit(event) {
     event.preventDefault();
-  },
+  }
 
   handleDelete() {
     this.props.onDelete(this.props.eventKey);
-  },
+  }
 
   render() {
     return (
@@ -140,7 +150,7 @@ const RecipePanel = React.createClass({
         <Panel
           header={this.props.header}
           eventKey={this.props.eventKey}
-          collapsible
+          collapsible="true"
         >
           <h4 className="text-center">Ingredients</h4><hr />
           <ListGroup>
@@ -188,28 +198,35 @@ const RecipePanel = React.createClass({
       </div>
     );
   }
-});
+}
 
-const AddRecipeModal = React.createClass({
-  getInitialState() {
-    return {
+class AddRecipeModal extends React.Component {
+  constructor(props) {
+    super(props);
+    
+    this.state = {
       showModal: false,
       name: '',
       ingredients: ''
     };
-  },
+    
+    this.close = this.close.bind(this);
+    this.open = this.open.bind(this);
+    this.onChange = this.onChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
 
   close() {
     this.setState({
       showModal: false
     });
-  },
+  }
 
   open() {
     this.setState({
       showModal: true
     });
-  },
+  }
 
   onChange(event) {
     switch (event.target.id) {
@@ -222,7 +239,7 @@ const AddRecipeModal = React.createClass({
       default:
         break;
     }
-  },
+  }
 
   handleSubmit(event) {
     event.preventDefault();
@@ -235,7 +252,7 @@ const AddRecipeModal = React.createClass({
     // Clear state after passed to RecipeContainer
     this.setState({name: '', ingredients: ''});
     this.close();
-  },
+  }
 
   render() {
     return (
@@ -284,21 +301,23 @@ const AddRecipeModal = React.createClass({
       </div>
     );
   }
-});
+}
 
-const App = () => (
-  <Grid>
-    <Row>
-      <Col xs={12}>
-        <RecipeContainer />
-      </Col>
-    </Row>
-  </Grid>
-);
+function App() {
+  return (
+    <Grid>
+      <Row>
+        <Col xs={12}>
+          <RecipeContainer />
+        </Col>
+      </Row>
+    </Grid>  
+  );
+}
 
 ReactDOM.render(<App />, document.getElementById('app'));
 
 // Set background of page
-const deviceHeight = window.screen.height;
-const deviceWidth = window.screen.width;
-document.body.style.backgroundImage = `url(https://source.unsplash.com/category/food/${deviceWidth}x${deviceHeight})`;
+const deviceHeight =  document.documentElement.clientHeight;
+const deviceWidth = document.documentElement.clientWidth;
+document.body.style.backgroundImage = `url(https://source.unsplash.com/collection/197345/${deviceWidth}x${deviceHeight})`;
